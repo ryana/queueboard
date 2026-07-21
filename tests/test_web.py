@@ -8,7 +8,10 @@ def test_dashboard_create_edit_and_delete_flow(client: TestClient) -> None:
 
     created = client.post(
         "/work-items",
-        data={"title": "Prepare weekly update", "description": "Summarize shipped work"},
+        data={
+            "title": "Prepare weekly update",
+            "description": "Summarize **shipped work**\n\n<script>alert('no')</script>",
+        },
         follow_redirects=False,
     )
     assert created.status_code == 303
@@ -16,6 +19,9 @@ def test_dashboard_create_edit_and_delete_flow(client: TestClient) -> None:
 
     detail = client.get(location)
     assert "Prepare weekly update" in detail.text
+    assert "<strong>shipped work</strong>" in detail.text
+    assert "<script>" not in detail.text
+    assert "&lt;script&gt;alert('no')&lt;/script&gt;" in detail.text
     assert "Work item created" in detail.text
 
     updated = client.post(

@@ -7,6 +7,7 @@ workflow into a full project-management system.
 ## What is included
 
 - A server-rendered web interface for creating and managing work items
+- Safe Markdown previews for work-item descriptions
 - A typed REST API with interactive OpenAPI documentation
 - PostgreSQL persistence managed through Alembic migrations
 - A Celery worker that records asynchronous activity events through Redis
