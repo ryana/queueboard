@@ -23,6 +23,14 @@
     </form>
 
     <aside>
+      <section class="panel description-preview">
+        <h2>Description preview</h2>
+        {% if item.description %}
+          <div class="markdown-body">{{ rendered_description }}</div>
+        {% else %}
+          <p class="muted">Add a description to see its formatted preview.</p>
+        {% endif %}
+      </section>
       <section class="panel activity-panel">
         <h2>Activity</h2>
         {% if item.activities %}

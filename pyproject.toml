@@ -13,6 +13,7 @@ dependencies = [
   "celery[redis]",
   "fastapi",
   "jinja2",
+  "markdown-it-py>=4.2.0",
   "psycopg[binary]",
   "pydantic-settings",
   "python-multipart",

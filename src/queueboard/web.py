@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from queueboard.api import get_item_or_404
 from queueboard.database import get_db
+from queueboard.markdown import render_markdown
 from queueboard.models import WorkItem
 from queueboard.schemas import Priority, WorkStatus
 from queueboard.tasks import record_activity
@@ -64,7 +65,12 @@ def work_item_detail(work_item_id: int, request: Request, session: DatabaseSessi
     return templates.TemplateResponse(
         request=request,
         name="detail.html",
-        context={"item": item, "statuses": WorkStatus, "priorities": Priority},
+        context={
+            "item": item,
+            "rendered_description": render_markdown(item.description),
+            "statuses": WorkStatus,
+            "priorities": Priority,
+        },
     )
 
 
