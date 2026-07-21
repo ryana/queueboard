@@ -88,6 +88,7 @@ Commit model and migration changes together.
 | Variable | Default | Description |
 | --- | --- | --- |
 | `APP_ENV` | `development` | Environment label reported by the health endpoint |
+| `BUILD_REVISION` | `dev` | Source revision reported by the health endpoint |
 | `DATABASE_URL` | `sqlite:///./tmp/queueboard.db` | SQLAlchemy database URL |
 | `CELERY_BROKER_URL` | `redis://localhost:6379/0` | Celery broker |
 | `CELERY_RESULT_BACKEND` | `redis://localhost:6379/1` | Celery result backend |
