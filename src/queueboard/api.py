@@ -1,9 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from queueboard.bulk_csv import (
+    MAX_UPLOAD_BYTES,
+    csv_download_name,
+    export_work_items_csv,
+    import_result,
+    import_work_items_csv,
+)
 from queueboard.database import get_db
 from queueboard.models import WorkItem
 from queueboard.schemas import WorkItemCreate, WorkItemDetail, WorkItemRead, WorkItemUpdate
@@ -45,6 +53,29 @@ def create_work_item(payload: WorkItemCreate, session: DatabaseSession) -> WorkI
     session.refresh(item)
     record_activity.delay(item.id, "Work item created")
     return item
+
+
+@router.get("/export.csv", response_class=Response)
+def export_work_items(session: DatabaseSession) -> Response:
+    items = list(session.scalars(select(WorkItem).order_by(WorkItem.id)))
+    return Response(
+        content=export_work_items_csv(items),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{csv_download_name()}"'},
+    )
+
+
+@router.post("/import.csv", status_code=status.HTTP_201_CREATED, response_model=None)
+async def import_work_items(
+    session: DatabaseSession, upload: Annotated[UploadFile, File()]
+) -> Response | dict[str, object]:
+    contents = await upload.read(MAX_UPLOAD_BYTES + 1)
+    items, errors = import_work_items_csv(session, contents)
+    if errors:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": errors}
+        )
+    return import_result(items)
 
 
 @router.get("/{work_item_id}", response_model=WorkItemDetail)

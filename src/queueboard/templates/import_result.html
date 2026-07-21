@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}CSV import · Queueboard{% endblock %}
+{% block content %}
+  <a class="back-link" href="/">← Back to queue</a>
+  <section class="panel import-result">
+    <p class="eyebrow">Import needs attention</p>
+    <h1>No work items were imported.</h1>
+    <p>Fix the following CSV issues and upload the file again.</p>
+    <ol class="import-errors">
+      {% for error in errors %}
+        <li><strong>Row {{ error.row }} · {{ error.field }}</strong><span>{{ error.message }}</span></li>
+      {% endfor %}
+    </ol>
+  </section>
+{% endblock %}
