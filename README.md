@@ -7,6 +7,7 @@ workflow into a full project-management system.
 ## What is included
 
 - A server-rendered web interface for creating and managing work items
+- Bulk CSV import and spreadsheet-safe export
 - A typed REST API with interactive OpenAPI documentation
 - PostgreSQL persistence managed through Alembic migrations
 - A Celery worker that records asynchronous activity events through Redis
@@ -59,6 +60,8 @@ uv run celery -A queueboard.celery_app:celery_app worker --loglevel=INFO
 | `GET` | `/api/work-items/{id}` | Read a work item and its activity |
 | `PATCH` | `/api/work-items/{id}` | Update selected fields |
 | `DELETE` | `/api/work-items/{id}` | Delete a work item |
+| `GET` | `/api/work-items/export.csv` | Download all work items as CSV |
+| `POST` | `/api/work-items/import.csv` | Atomically import work items from CSV |
 
 The generated schema at `/openapi.json` is the canonical API contract.
 

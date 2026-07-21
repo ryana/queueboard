@@ -1,13 +1,14 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request, status
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from queueboard.api import get_item_or_404
+from queueboard.bulk_csv import MAX_IMPORT_ROWS, MAX_UPLOAD_BYTES, import_work_items_csv
 from queueboard.database import get_db
 from queueboard.models import WorkItem
 from queueboard.schemas import Priority, WorkStatus
@@ -19,7 +20,11 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 @router.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, session: DatabaseSession) -> HTMLResponse:
+def dashboard(
+    request: Request,
+    session: DatabaseSession,
+    imported: Annotated[int | None, Query(ge=1, le=MAX_IMPORT_ROWS)] = None,
+) -> HTMLResponse:
     items = list(session.scalars(select(WorkItem).order_by(WorkItem.created_at.desc())))
     counts = {
         row.status: row.count
@@ -32,7 +37,7 @@ def dashboard(request: Request, session: DatabaseSession) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"items": items, "counts": counts},
+        context={"items": items, "counts": counts, "imported": imported},
     )
 
 
@@ -49,6 +54,24 @@ def create_work_item(
     session.refresh(item)
     record_activity.delay(item.id, "Work item created")
     return RedirectResponse(url=f"/work-items/{item.id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/work-items/import", response_class=HTMLResponse, response_model=None)
+async def import_work_items(
+    request: Request,
+    session: DatabaseSession,
+    upload: Annotated[UploadFile, File()],
+) -> HTMLResponse | RedirectResponse:
+    contents = await upload.read(MAX_UPLOAD_BYTES + 1)
+    items, errors = import_work_items_csv(session, contents)
+    if errors:
+        return templates.TemplateResponse(
+            request=request,
+            name="import_result.html",
+            context={"errors": errors},
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
+    return RedirectResponse(url=f"/?imported={len(items)}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/work-items/{work_item_id}", response_class=HTMLResponse)

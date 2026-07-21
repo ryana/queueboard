@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Queueboard · Work queue{% endblock %}
 {% block content %}
+  {% if imported %}
+    <div class="notice" role="status"><strong>{{ imported }}</strong> work item{% if imported != 1 %}s{% endif %} imported successfully.</div>
+  {% endif %}
   <section class="hero">
     <div>
       <p class="eyebrow">Shared work queue</p>
@@ -15,22 +18,34 @@
   </section>
 
   <section class="layout">
-    <form class="panel create-form" method="post" action="/work-items">
-      <h2>Add work</h2>
-      <label>Title<input name="title" maxlength="160" required placeholder="What needs attention?"></label>
-      <label>Description<textarea name="description" maxlength="5000" rows="5" placeholder="Useful context and desired outcome"></textarea></label>
-      <label>Priority
-        <select name="priority">
-          <option value="low">Low</option>
-          <option value="medium" selected>Medium</option>
-          <option value="high">High</option>
-        </select>
-      </label>
-      <button type="submit">Add to queue</button>
-    </form>
+    <div class="controls-column">
+      <form class="panel create-form" method="post" action="/work-items">
+        <h2>Add work</h2>
+        <label>Title<input name="title" maxlength="160" required placeholder="What needs attention?"></label>
+        <label>Description<textarea name="description" maxlength="5000" rows="5" placeholder="Useful context and desired outcome"></textarea></label>
+        <label>Priority
+          <select name="priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <button type="submit">Add to queue</button>
+      </form>
+
+      <form class="panel import-form" method="post" action="/work-items/import" enctype="multipart/form-data">
+        <h2>Import CSV</h2>
+        <p class="muted">Add up to 500 work items from a UTF-8 CSV file.</p>
+        <label>CSV file<input name="upload" type="file" accept=".csv,text/csv" required></label>
+        <button type="submit">Import work items</button>
+      </form>
+    </div>
 
     <section class="queue" aria-label="Work items">
-      <div class="section-heading"><h2>Current queue</h2><span>{{ items|length }} items</span></div>
+      <div class="section-heading">
+        <h2>Current queue</h2>
+        <div class="queue-actions"><span>{{ items|length }} items</span><a href="/api/work-items/export.csv">Export CSV</a></div>
+      </div>
       {% if items %}
         <div class="item-list">
           {% for item in items %}
