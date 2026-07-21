@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "Queueboard"
     app_env: str = "development"
+    build_revision: str = "dev"
     database_url: str = "sqlite:///./tmp/queueboard.db"
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"

@@ -1,18 +1,21 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
+ARG BUILD_REVISION=dev
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    BUILD_REVISION=${BUILD_REVISION}
 
 WORKDIR /app
 
+COPY src ./src
 COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY alembic.ini ./
 COPY alembic ./alembic
-COPY src ./src
 RUN uv sync --frozen --no-dev
 
 RUN groupadd --gid 10001 queueboard \

@@ -5,6 +5,7 @@ def test_health_and_openapi_are_available(client: TestClient) -> None:
     health = client.get("/health")
     assert health.status_code == 200
     assert health.json()["status"] == "ok"
+    assert health.json()["revision"] == "dev"
 
     docs = client.get("/openapi.json")
     assert docs.status_code == 200

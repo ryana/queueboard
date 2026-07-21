@@ -22,4 +22,9 @@ app.include_router(web_router)
 
 @app.get("/health", tags=["operations"])
 def health() -> dict[str, Any]:
-    return {"status": "ok", "version": __version__, "environment": settings.app_env}
+    return {
+        "status": "ok",
+        "version": __version__,
+        "revision": settings.build_revision,
+        "environment": settings.app_env,
+    }
