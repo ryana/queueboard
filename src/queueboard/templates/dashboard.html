@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Queueboard · Work queue{% endblock %}
+{% block content %}
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Shared work queue</p>
+      <h1>Keep the next thing obvious.</h1>
+      <p>Capture incoming work, set its priority, and move it through a small, visible workflow.</p>
+    </div>
+    <div class="stats" aria-label="Queue status">
+      <div><strong>{{ counts.get('todo', 0) }}</strong><span>To do</span></div>
+      <div><strong>{{ counts.get('in_progress', 0) }}</strong><span>In progress</span></div>
+      <div><strong>{{ counts.get('done', 0) }}</strong><span>Done</span></div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <form class="panel create-form" method="post" action="/work-items">
+      <h2>Add work</h2>
+      <label>Title<input name="title" maxlength="160" required placeholder="What needs attention?"></label>
+      <label>Description<textarea name="description" maxlength="5000" rows="5" placeholder="Useful context and desired outcome"></textarea></label>
+      <label>Priority
+        <select name="priority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+      <button type="submit">Add to queue</button>
+    </form>
+
+    <section class="queue" aria-label="Work items">
+      <div class="section-heading"><h2>Current queue</h2><span>{{ items|length }} items</span></div>
+      {% if items %}
+        <div class="item-list">
+          {% for item in items %}
+            <a class="work-item" href="/work-items/{{ item.id }}">
+              <div><span class="status status-{{ item.status }}">{{ item.status|replace('_', ' ') }}</span><h3>{{ item.title }}</h3></div>
+              <span class="priority priority-{{ item.priority }}">{{ item.priority }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><h3>The queue is clear.</h3><p>Add the first item when something needs attention.</p></div>
+      {% endif %}
+    </section>
+  </section>
+{% endblock %}

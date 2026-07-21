@@ -1,0 +1,69 @@
+services:
+  web:
+    build: .
+    command: ["sh", "-c", "uv run --no-sync alembic upgrade head && exec uv run --no-sync uvicorn queueboard.main:app --host 0.0.0.0 --port 8000 --reload"]
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://queueboard:queueboard@db:5432/queueboard
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./alembic:/app/alembic
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    build: .
+    command: ["uv", "run", "--no-sync", "celery", "-A", "queueboard.celery_app:celery_app", "worker", "--loglevel=INFO"]
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://queueboard:queueboard@db:5432/queueboard
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: queueboard
+      POSTGRES_USER: queueboard
+      POSTGRES_PASSWORD: queueboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - queueboard-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U queueboard -d queueboard"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  queueboard-data:

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} · Queueboard{% endblock %}
+{% block content %}
+  <a class="back-link" href="/">← Back to queue</a>
+  <section class="detail-grid">
+    <form class="panel detail-form" method="post" action="/work-items/{{ item.id }}">
+      <div class="section-heading"><h1>Edit work item</h1><span>#{{ item.id }}</span></div>
+      <label>Title<input name="title" value="{{ item.title }}" maxlength="160" required></label>
+      <label>Description<textarea name="description" maxlength="5000" rows="8">{{ item.description }}</textarea></label>
+      <div class="form-row">
+        <label>Status
+          <select name="status">
+            {% for status in statuses %}<option value="{{ status.value }}" {% if item.status == status.value %}selected{% endif %}>{{ status.value|replace('_', ' ')|title }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Priority
+          <select name="priority">
+            {% for priority in priorities %}<option value="{{ priority.value }}" {% if item.priority == priority.value %}selected{% endif %}>{{ priority.value|title }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <button type="submit">Save changes</button>
+    </form>
+
+    <aside>
+      <section class="panel activity-panel">
+        <h2>Activity</h2>
+        {% if item.activities %}
+          <ol class="activity-list">
+            {% for activity in item.activities %}<li><span>{{ activity.message }}</span><time>{{ activity.created_at.strftime('%b %d, %H:%M UTC') }}</time></li>{% endfor %}
+          </ol>
+        {% else %}
+          <p class="muted">Activity will appear after the worker processes the event.</p>
+        {% endif %}
+      </section>
+      <form method="post" action="/work-items/{{ item.id }}/delete" onsubmit="return confirm('Delete this work item?')">
+        <button class="danger secondary" type="submit">Delete work item</button>
+      </form>
+    </aside>
+  </section>
+{% endblock %}

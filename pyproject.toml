@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "queueboard"
+version = "0.1.0"
+description = "A lightweight shared work queue for small teams"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic",
+  "celery[redis]",
+  "fastapi",
+  "jinja2",
+  "psycopg[binary]",
+  "pydantic-settings",
+  "python-multipart",
+  "sqlalchemy",
+  "uvicorn[standard]",
+]
+
+[dependency-groups]
+dev = [
+  "httpx2>=2.7.0",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "ruff",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/queueboard"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --cov=queueboard --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["queueboard"]
+
+[[tool.mypy.overrides]]
+module = ["celery", "celery.*"]
+ignore_missing_imports = true
