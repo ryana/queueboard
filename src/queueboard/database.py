@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -12,6 +13,9 @@ class Base(DeclarativeBase):
 
 settings = get_settings()
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+if settings.database_url.startswith("sqlite:///./"):
+    sqlite_path = Path(settings.database_url.removeprefix("sqlite:///"))
+    sqlite_path.parent.mkdir(parents=True, exist_ok=True)
 engine = create_engine(settings.database_url, connect_args=connect_args, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
